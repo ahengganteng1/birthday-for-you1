@@ -140,5 +140,148 @@ function showRealMessage(){
   document.getElementById('secret').classList.add('show');
 }
 </script>
+<style>
+#birthday-cake-box {
+  display: none;
+  position: relative;
+  margin: 30px auto;
+  padding: 25px 15px;
+  max-width: 420px;
+  text-align: center;
+  color: #7d3158;
+  background: #fff0f6;
+  border-radius: 22px;
+  font-family: sans-serif;
+}
+#birthday-cake-box .cake {
+  font-size: 95px;
+  line-height: 1.5;
+}
+#birthday-cake-box h2 {
+  font-size: 25px;
+}
+#birthday-cake-box button {
+  margin: 6px;
+  padding: 12px 17px;
+  border: 0;
+  border-radius: 20px;
+  background: #ed78a8;
+  color: white;
+  font-size: 15px;
+}
+#birthday-cake-box #cake-result {
+  min-height: 28px;
+  font-weight: bold;
+}
+</style>
+
+<div id="birthday-cake-box">
+  <h2>make a wish, sayangggg! 🎂</h2>
+  <p>tutup mata, buat permohonan, lalu tiup lilinnya yaa ♡</p>
+  <div class="cake" id="cake-picture">🎂🕯️</div>
+  <button id="blow-button">🌬️ tiup lilin</button>
+  <button id="mic-button">🎤 tiup pakai suara</button>
+  <p id="cake-result"></p>
+</div>
+
+<script>
+(function () {
+  const box = document.getElementById("birthday-cake-box");
+  const cake = document.getElementById("cake-picture");
+  const result = document.getElementById("cake-result");
+  const blow = document.getElementById("blow-button");
+  const mic = document.getElementById("mic-button");
+
+  // Menampilkan kue dengan tombol khusus.
+  // Kita tidak mengubah tombol website yang sudah ada.
+
+  function finishWish() {
+    cake.textContent = "🎂💨";
+    result.textContent = "HAPPY 20TH BIRTHDAY, DOROTHEA! 🎉💗";
+    blow.disabled = true;
+    mic.disabled = true;
+  }
+
+  blow.addEventListener("click", finishWish);
+
+  mic.addEventListener("click", function () {
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if (!navigator.mediaDevices ||
+        !navigator.mediaDevices.getUserMedia) {
+      result.textContent =
+        "mikrofon belum didukung, sayang. tekan tombol tiup lilin yaa ♡";
+      return;
+    }
+
+    navigator.mediaDevices.getUserMedia({ audio: true })
+      .then(function (stream) {
+        const AudioContextClass =
+          window.AudioContext || window.webkitAudioContext;
+
+        if (!AudioContextClass) {
+          stream.getTracks().forEach(t => t.stop());
+          result.textContent = "tekan tombol tiup lilin yaa ♡";
+          return;
+        }
+
+        const context = new AudioContextClass();
+        const analyser = context.createAnalyser();
+        const source = context.createMediaStreamSource(stream);
+        source.connect(analyser);
+        analyser.fftSize = 1024;
+        const data = new Uint8Array(analyser.fftSize);
+        result.textContent = "ayo tiup ke mikrofon sekarang! 🌬️";
+
+        let checks = 0;
+        function listen() {
+          analyser.getByteTimeDomainData(data);
+          let sum = 0;
+          for (let i = 0; i < data.length; i++) {
+            const v = (data[i] - 128) / 128;
+            sum += v * v;
+          }
+          const volume = Math.sqrt(sum / data.length);
+          checks++;
+
+          if (volume > 0.12 && checks > 3) {
+            stream.getTracks().forEach(t => t.stop());
+            context.close();
+            finishWish();
+            return;
+          }
+
+          if (checks < 500) {
+            requestAnimationFrame(listen);
+          } else {
+            stream.getTracks().forEach(t => t.stop());
+            context.close();
+            result.textContent =
+              "nggak kedeteksi? tekan tombol tiup lilin yaa ♡";
+          }
+        }
+        listen();
+      })
+      .catch(function () {
+        result.textContent =
+          "izin mikrofon ditolak. pakai tombol tiup lilin yaa ♡";
+      });
+  });
+
+  // Tombol pembuka bagian kue
+  const opener = document.createElement("button");
+  opener.textContent = "🎂 tiup lilin ulang tahun";
+  opener.style.cssText =
+    "display:block;margin:20px auto;padding:12px 18px;" +
+    "border:0;border-radius:22px;background:#ed78a8;color:white;" +
+    "font-size:16px;";
+  opener.addEventListener("click", function () {
+    box.style.display = "block";
+    box.scrollIntoView({ behavior: "smooth", block: "center" });
+  });
+  box.parentNode.insertBefore(opener, box);
+})();
+</script>
 </body>
 </html>
