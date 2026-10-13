@@ -280,7 +280,21 @@ function showRealMessage(){
     box.style.display = "block";
     box.scrollIntoView({ behavior: "smooth", block: "center" });
   });
+  const target = Array.from(
+  document.querySelectorAll("section.section")
+).find(section => {
+  const heading = section.querySelector("h2");
+  return heading &&
+    heading.textContent.trim().toLowerCase()
+      .startsWith("permintaan kecil dariku");
+});
+
+if (target) {
+  target.parentNode.insertBefore(opener, target);
+  target.parentNode.insertBefore(box, target);
+} else {
   box.parentNode.insertBefore(opener, box);
+}
 })();
 </script>
 </body>
